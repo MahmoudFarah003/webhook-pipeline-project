@@ -1,21 +1,40 @@
- import { Router } from "express";
-import { pool } from "../db/db";
+import { Router } from "express";
+import { pool } from "../db/db";  
 
-export const webhooksRouter = Router();
+export const webhookRouter = Router();
 
-webhooksRouter.post("/:pipelineId", async (req, res) => {
+webhookRouter.post('/:pipelineId', async (req, res) => { 
+  try {
+    const pipelineId = parseInt(req.params.pipelineId);  
+    
+    if (isNaN(pipelineId)) {
+      return res.status(400).json({ error: "Invalid pipeline ID" });
+    }
 
-  const payload = req.body;
-  const { pipelineId } = req.params;
+    const payload = req.body;
 
-  const job = await pool.query(
-    "INSERT INTO jobs (pipeline_id,payload) VALUES ($1,$2) RETURNING *",
-    [pipelineId, payload]
-  );
+    const pipelineCheck = await pool.query(
+      `SELECT * FROM pipelines WHERE id = $1`,
+      [pipelineId]
+    );
 
-  res.json({
-    message: "job queued",
-    job: job.rows[0],
-  });
+    if (pipelineCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Pipeline not found" });
+    }
 
+    const jobResult = await pool.query(
+      `INSERT INTO jobs (pipeline_id, payload, status) 
+       VALUES ($1, $2, 'pending') RETURNING *`,
+      [pipelineId, JSON.stringify(payload)]
+    );
+
+    res.status(201).json({
+      message: "Webhook received and job created",
+      job: jobResult.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
