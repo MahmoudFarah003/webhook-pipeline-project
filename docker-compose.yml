@@ -22,3 +22,5 @@ services:
       POSTGRES_DB: pipeline
     ports:
       - "5433:5432"
+    volumes:
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
