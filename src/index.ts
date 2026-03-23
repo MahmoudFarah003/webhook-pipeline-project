@@ -13,9 +13,14 @@ app.use("/pipelines", pipelinesRouter);
 app.use("/webhook", webhookRouter);
 app.use("/jobs", jobsRouter);
 
-// Health check
+// Health check endpoint
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: "1.0.0"
+  });
 });
 
 app.listen(PORT, () => {
