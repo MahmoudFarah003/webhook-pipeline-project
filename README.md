@@ -147,22 +147,8 @@ api-1    | API running on port 3000
 
     Test the API
 Open another terminal and run:
-
-# Health check
-curl http://localhost:3000/health
-
-# Create a pipeline
-curl -X POST http://localhost:3000/pipelines \
-  -H "Content-Type: application/json" \
-  -d '{"name": "My Pipeline", "action_type": "uppercase"}'
-
-# Send a webhook
-curl -X POST http://localhost:3000/webhook/1 \
-  -H "Content-Type: application/json" \
-  -d '{"text": "hello world"}'
-
-# Check jobs
-curl http://localhost:3000/jobs
+./demo-complete.sh
+this file includes all things you need to run .
 
  API Documentation
 Base URL : http://localhost:3000
@@ -174,10 +160,11 @@ GET	    /health	   Check if API is running
 
 Response:
 
+[1] Health Check
 {
   "status": "ok",
-  "timestamp": "2026-01-01T00:00:00.000Z",
-  "uptime": 123.45,
+  "timestamp": "2026-03-24T02:19:07.756Z",
+  "uptime": 540.327744774,
   "version": "1.0.0"
 }
 
@@ -190,102 +177,331 @@ PUT	   /pipelines/:id	    Update pipeline
 DELETE /pipelines/:id	Delete pipeline and related data
 POST   /pipelines         (Create Pipeline)
 
-Request Body:
+
+[2] Create Pipeline (Uppercase) with Subscribers
 {
-  "name": "My Pipeline",
+  "id": 3,
+  "name": "Uppercase Pipeline",
   "action_type": "uppercase",
-  "subscribers": [
-    "https://webhook.site/xxx",
-    "https://example.com/webhook"
-  ]
-}
-Response:
-{
-  "id": 1,
-  "name": "My Pipeline",
-  "action_type": "uppercase",
-  "created_at": "2026-03-23T17:23:11.402Z"
+  "created_at": "2026-03-24T02:19:08.783Z"
 }
 
-GET /pipelines (List All Pipelines)
+[3] Create Pipeline (Wordcount)
+{
+  "id": 4,
+  "name": "Wordcount Pipeline",
+  "action_type": "wordcount",
+  "created_at": "2026-03-24T02:19:09.824Z"
+}
 
-Response:
+[4] Create Pipeline (Timestamp)
+{
+  "id": 5,
+  "name": "Timestamp Pipeline",
+  "action_type": "timestamp",
+  "created_at": "2026-03-24T02:19:10.861Z"
+}
+
+[5] List All Pipelines
 [
   {
-    "id": 1,
-    "name": "My Pipeline",
+    "id": 5,
+    "name": "Timestamp Pipeline",
+    "action_type": "timestamp",
+    "created_at": "2026-03-24T02:19:10.861Z"
+  },
+  {
+    "id": 4,
+    "name": "Wordcount Pipeline",
+    "action_type": "wordcount",
+    "created_at": "2026-03-24T02:19:09.824Z"
+  },
+  {
+    "id": 3,
+    "name": "Uppercase Pipeline",
     "action_type": "uppercase",
-    "created_at": ""
-  }
-]
-
-Webhooks
-Method	Endpoint	Description
-POST	/webhook/:pipelineId	Send webhook to pipeline
-POST /webhook/1
-
-Request Body:
-{
-  "text": "hello world",
-  "any": "data"
-}
-Response:
-{
-  "message": "Webhook received and job created",
-  "jobId": 1,
-  "status": "pending",
-  "job": {
-    "id": 1,
-    "pipeline_id": 1,
-    "payload": { "text": "hello world" },
-    "status": "pending",
-    "created_at": ""
-  }
-
-Jobs
-Method	Endpoint	Description
-GET	/jobs	List all jobs
-GET	/jobs/:id	Get job details with delivery attempts
-GET /jobs (List All Jobs)
-
-Response:
-[
+    "created_at": "2026-03-24T02:19:08.783Z"
+  },
+  {
+    "id": 2,
+    "name": "Manual Retry Test",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:10:12.878Z"
+  },
   {
     "id": 1,
-    "pipeline_id": 1,
-    "payload": { "text": "hello world" },
-    "status": "done",
-    "result": { "text": "HELLO WORLD" },
-    "created_at": "",
-    "processed_at": "",
-    "pipeline_name": "My Pipeline"
+    "name": "Manual Retry Test",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:06:36.040Z"
   }
 ]
-GET /jobs/1 (Get Job Details)
 
-Response :
+[6] Get Pipeline Details (ID: 3 - Uppercase)
 {
-  "id": 1,
-  "pipeline_id": 1,
-  "payload": { "text": "hello world" },
-  "status": "done",
-  "result": { "text": "HELLO WORLD" },
-  "created_at": "",
-  "processed_at": "",
-  "pipeline_name": "My Pipeline",
-  "delivery_attempts": [
+  "id": 3,
+  "name": "Uppercase Pipeline",
+  "action_type": "uppercase",
+  "created_at": "2026-03-24T02:19:08.783Z",
+  "subscribers": [
     {
-      "id": 1,
-      "job_id": 1,
-      "subscriber_url": "https://webhook.site/xxx",
-      "attempt_number": 1,
-      "status": "success",
-      "response_code": 200,
-      "duration_ms": 123,
-      "created_at": "2026-01-01T00:00:01.000Z"
+      "id": 3,
+      "pipeline_id": 3,
+      "url": "https://webhook.site/1f2e3d4c-5b6a-7c8d-9e0f-1a2b3c4d5e6f"
+    },
+    {
+      "id": 4,
+      "pipeline_id": 3,
+      "url": "https://httpbin.org/post"
     }
   ]
 }
+
+[7] Send Webhook to Uppercase Pipeline (ID: 3)
+Payload: {"text": "hello world from webhook", "source": "demo"}
+{
+  "message": "Webhook received and job created",
+  "job": {
+    "id": 3,
+    "pipeline_id": 3,
+    "payload": {
+      "text": "hello world from webhook",
+      "source": "demo"
+    },
+    "status": "pending",
+    "result": null,
+    "created_at": "2026-03-24T02:19:13.933Z",
+    "processed_at": null
+  }
+}
+
+[8] Send Webhook to Wordcount Pipeline (ID: 4)
+Payload: {"text": "The quick brown fox jumps over the lazy dog"}
+{
+  "message": "Webhook received and job created",
+  "job": {
+    "id": 4,
+    "pipeline_id": 4,
+    "payload": {
+      "text": "The quick brown fox jumps over the lazy dog"
+    },
+    "status": "pending",
+    "result": null,
+    "created_at": "2026-03-24T02:19:15.970Z",
+    "processed_at": null
+  }
+}
+
+[9] Send Webhook to Timestamp Pipeline (ID: 5)
+Payload: {"user": "test", "action": "login"}
+{
+  "message": "Webhook received and job created",
+  "job": {
+    "id": 5,
+    "pipeline_id": 5,
+    "payload": {
+      "user": "test",
+      "action": "login"
+    },
+    "status": "pending",
+    "result": null,
+    "created_at": "2026-03-24T02:19:18.005Z",
+    "processed_at": null
+  }
+}
+
+[10] Waiting for worker to process jobs (5 seconds)...
+[11] Check All Jobs
+{
+  "id": 5,
+  "pipeline_name": "Timestamp Pipeline",
+  "status": "done",
+  "result": {
+    "output": {
+      "user": "test",
+      "action": "login",
+      "timestamp": "2026-03-24T02:19:21.558Z"
+    },
+    "deliveries": []
+  }
+}
+{
+  "id": 4,
+  "pipeline_name": "Wordcount Pipeline",
+  "status": "done",
+  "result": {
+    "output": {
+      "words": 9,
+      "characters": 43
+    },
+    "deliveries": []
+  }
+}
+{
+  "id": 3,
+  "pipeline_name": "Uppercase Pipeline",
+  "status": "done",
+  "result": {
+    "output": {
+      "text": "HELLO WORLD FROM WEBHOOK"
+    },
+    "deliveries": [
+      {
+        "url": "https://webhook.site/1f2e3d4c-5b6a-7c8d-9e0f-1a2b3c4d5e6f",
+        "error": "HTTP 404",
+        "success": false,
+        "attempts": 3
+      },
+      {
+        "url": "https://httpbin.org/post",
+        "success": true,
+        "attempts": 1,
+        "statusCode": 200
+      }
+    ]
+  }
+}
+{
+  "id": 2,
+  "pipeline_name": "Manual Retry Test",
+  "status": "done",
+  "result": {
+    "output": {
+      "text": "TESTING RETRY MANUALLY"
+    },
+    "deliveries": [
+      {
+        "url": "http://localhost:9999/nonexistent-endpoint",
+        "error": "Connection refused",
+        "success": false,
+        "attempts": 3
+      }
+    ]
+  }
+}
+{
+  "id": 1,
+  "pipeline_name": "Manual Retry Test",
+  "status": "processing",
+  "result": null
+}
+
+[12] Get Wordcount Job Details (Job ID: 4)
+{
+  "id": 4,
+  "pipeline_id": 4,
+  "status": "done",
+  "result": {
+    "output": {
+      "words": 9,
+      "characters": 43
+    },
+    "deliveries": []
+  }
+}
+
+[13] Verify Wordcount Result
+✓ Wordcount is working correctly!
+{
+  "output": {
+    "words": 9,
+    "characters": 43
+  },
+  "deliveries": []
+}
+
+[14] Update Pipeline (Change name of Uppercase Pipeline)
+{
+  "message": "Pipeline updated successfully",
+  "data": {
+    "id": 3,
+    "name": "Updated Uppercase Pipeline",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:19:08.783Z"
+  }
+}
+
+[15] Delete Pipeline (ID: 5 - Timestamp)
+{
+  "message": "Pipeline deleted successfully",
+  "data": {
+    "id": 5,
+    "name": "Timestamp Pipeline",
+    "action_type": "timestamp",
+    "created_at": "2026-03-24T02:19:10.861Z"
+  }
+}
+
+[16] Verify Pipeline Deleted
+[
+  {
+    "id": 4,
+    "name": "Wordcount Pipeline",
+    "action_type": "wordcount",
+    "created_at": "2026-03-24T02:19:09.824Z"
+  },
+  {
+    "id": 3,
+    "name": "Updated Uppercase Pipeline",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:19:08.783Z"
+  },
+  {
+    "id": 2,
+    "name": "Manual Retry Test",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:10:12.878Z"
+  },
+  {
+    "id": 1,
+    "name": "Manual Retry Test",
+    "action_type": "uppercase",
+    "created_at": "2026-03-24T02:06:36.040Z"
+  }
+]
+
+[17] Test Retry Logic (Failing URL)
+Creating pipeline with failing subscriber...
+{
+  "id": 6,
+  "name": "Retry Test",
+  "action_type": "uppercase",
+  "created_at": "2026-03-24T02:19:31.200Z"
+}
+Pipeline ID: 6
+
+Sending webhook to trigger retry logic...
+{
+  "message": "Webhook received and job created",
+  "job": {
+    "id": 6,
+    "pipeline_id": 6,
+    "payload": {
+      "text": "testing retry logic"
+    },
+    "status": "pending",
+    "result": null,
+    "created_at": "2026-03-24T02:19:31.235Z",
+    "processed_at": null
+  }
+}
+Job ID: 6
+
+Waiting for retry attempts (15 seconds)...
+Checking delivery attempts for job 6...
+{
+  "id": 6,
+  "status": "done",
+  "result": [
+    {
+      "url": "http://localhost:9999/does-not-exist",
+      "error": "Connection refused",
+      "success": false,
+      "attempts": 3
+    }
+  ],
+  "delivery_attempts": 3
+}
+ Retry Logic working! 3 attempts recorded
 
  ##  Action Types
 

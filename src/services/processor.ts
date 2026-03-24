@@ -1,79 +1,41 @@
-export type ActionType = 'uppercase' | 'wordcount' | 'timestamp' | 'reverse' | 'echo';
+export function processPayload(action: string, payload: any) {
 
-interface Payload {
-  text?: string;
-  [key: string]: any;
-}
+  console.log("PROCESSING ACTION:", action); // مهم للتشخيص
 
-export function processPayload(action: ActionType, payload: Payload): Payload {
-  if (!payload) {
-    throw new Error('Payload is required');
-  }
+  switch (action) {
 
-  switch(action) {
-    case 'uppercase':
-      if (!payload.text) {
-        throw new Error('Text is required for uppercase action');
-      }
+    case "uppercase":
       return {
-        ...payload,
-        text: payload.text.toUpperCase(),
-        processed: true,
-        action: 'uppercase'
+        text: payload.text?.toUpperCase()
       };
 
-    case 'wordcount':
-      if (!payload.text) {
-        throw new Error('Text is required for wordcount action');
-      }
+    case "reverse":
       return {
-        ...payload,
-        words: payload.text.trim().split(/\s+/).length, 
-        characters: payload.text.length,
-        processed: true,
-        action: 'wordcount'
+        text: payload.text?.split("").reverse().join("")
       };
 
-    case 'timestamp':
+    case "wordcount":
+      const text = payload.text || "";
       return {
-        ...payload,
-        timestamp: new Date().toISOString(), 
-        processed: true,
-        action: 'timestamp'
+        words: text.trim().split(/\s+/).length,
+        characters: text.length
       };
 
-    case 'reverse':
-      if (!payload.text) {
-        throw new Error('Text is required for reverse action');
-      }
+    case "timestamp":
       return {
         ...payload,
-        text: payload.text.split('').reverse().join(''),
-        processed: true,
-        action: 'reverse'
+        timestamp: new Date().toISOString()
       };
 
-    case 'echo':
+    case "echo":
       return {
         ...payload,
         processed: true,
-        action: 'echo',
         receivedAt: new Date().toISOString()
       };
 
     default:
-      console.warn(`Unknown action type: ${action}`);
-      return {
-        ...payload,
-        processed: false,
-        action: action,
-        error: `Unknown action type: ${action}`
-      };
+      console.log("UNKNOWN ACTION:", action);
+      return payload;
   }
-}
-
-export async function processPayloadAsync(action: ActionType, payload: Payload): Promise<Payload> {
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  return processPayload(action, payload);
 }

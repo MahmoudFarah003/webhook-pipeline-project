@@ -121,3 +121,33 @@ pipelinesRouter.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+// GET single pipeline by ID
+pipelinesRouter.get("/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid pipeline ID" });
+    }
+
+    const pipeline = await pool.query(
+      `SELECT p.*, 
+        COALESCE(
+          (SELECT json_agg(s.*) FROM subscribers s WHERE s.pipeline_id = p.id),
+          '[]'::json
+        ) as subscribers
+       FROM pipelines p 
+       WHERE p.id = $1`,
+      [id]
+    );
+
+    if (pipeline.rows.length === 0) {
+      return res.status(404).json({ error: `Pipeline with ID ${id} not found` });
+    }
+
+    res.json(pipeline.rows[0]);
+  } catch (error) {
+    console.error("Error fetching pipeline:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
